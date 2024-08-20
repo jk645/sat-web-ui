@@ -2,6 +2,7 @@ const OpenAPIBackend = require("openapi-backend").default;
 const express = require("express");
 const app = express();
 app.use(express.json());
+app.use(require("cors")());
 
 // create api with definition file
 const api = new OpenAPIBackend({ definition: "./api-definition/index.yml" });

@@ -9,5 +9,5 @@ servers:
   - url: http://staging-api.example.com
     description: Optional server description, e.g. Internal staging server for testing
 paths:
-  /users:
-    $ref: ./paths/users.yml
+  /assets:
+    $ref: ./paths/assets.yml

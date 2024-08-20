@@ -9,8 +9,8 @@ const api = new OpenAPIBackend({ definition: "./api-definition/index.yml" });
 // register request handlers
 const sampleNotFoundError = {err: "sample not found"};
 api.register({
-  // users
-  getUsers: async (c, req, res) => res.status(200).json(c.operation?.responses?.["200"]?.content?.["application/json"]?.schema?.example || sampleNotFoundError),
+  // assets
+  getAssets: async (c, req, res) => res.status(200).json(c.operation?.responses?.["200"]?.content?.["application/json"]?.schema?.example || sampleNotFoundError),
 
   // base handlers
   validationFail: async (c, req, res) => res.status(400).json({ err: c.validation.errors }),

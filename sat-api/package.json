@@ -1,0 +1,12 @@
+{
+  "name": "sat-api",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "openapi-backend": "^5.10.6"
+  }
+}

@@ -18,6 +18,7 @@ onMounted(() => {
   }).addTo(map);
 });
 
+const markerRefs: any = {};
 const assetList: Ref<any> = ref([{id: 123}]);
 getAssets()
   .then((result) => {
@@ -37,11 +38,21 @@ getAssets()
           <dd>${asset.speed}</dd>
         </dl>
       `);
+      markerRefs[asset.id] = marker;
     });
 
     // TODO: set view of map to encapsulate all assets
   })
   .catch();
+
+  const showOnMap = (asset: any) => {
+    const markerOfAsset = markerRefs[asset.id];
+    map.setView({
+      lng: asset.location.lng,
+      lat: asset.location.lat
+    }, 14);
+    markerOfAsset.openPopup();
+  };
 </script>
 
 <template>
@@ -62,7 +73,11 @@ getAssets()
               <li class="list-group-item">Speed: {{ asset.speed }}</li>
             </ul>
             <div class="card-body">
-              <a href="#" class="card-link">Go to</a>
+              <button type="button"
+                class="btn btn-outline-dark"
+                @click="showOnMap(asset)">
+                Show on map
+              </button>
             </div>
           </div>
         </div>

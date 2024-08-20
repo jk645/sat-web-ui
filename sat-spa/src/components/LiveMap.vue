@@ -4,22 +4,29 @@ import type { Ref } from "vue";
 import leaflet from "leaflet";
 import getAssets from "../helpers/get-assets";
 
+let map: any;
+
 onMounted(() => {
-  const map = leaflet.map("map").setView([51.5, -0.09], 13);
+  map = leaflet.map("map").setView({
+    lng: -73.990200,
+    lat: 40.706547
+  }, 14);
 
   leaflet.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
     attribution: "&copy; <a href=\"http://www.openstreetmap.org/copyright\">OpenStreetMap</a>"
   }).addTo(map);
-
-  const marker = leaflet.marker([51.5, -0.09]).addTo(map);
-  console.log(marker);  // TEMP
 });
 
 const assetList: Ref<any> = ref([{id: 123}]);
 getAssets()
   .then((result) => {
     assetList.value = result;
+
+    // Add markers to the map.
+    result.forEach((asset: any) => {
+      leaflet.marker(asset.location).addTo(map);
+    });
   })
   .catch();
 </script>

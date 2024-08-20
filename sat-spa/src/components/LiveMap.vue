@@ -25,8 +25,21 @@ getAssets()
 
     // Add markers to the map.
     result.forEach((asset: any) => {
-      leaflet.marker(asset.location).addTo(map);
+      const marker = leaflet.marker(asset.location).addTo(map);
+      marker.bindPopup(`
+        <div class="h5">Asset #${asset.id}</div>
+        <dl>
+          <dt>Location (latitude, longitude)</dt>
+          <dd>${asset.location.lat}, ${asset.location.lng}</dd>
+          <dt>Heading</dt>
+          <dd>${asset.heading}</dd>
+          <dt>Speed</dt>
+          <dd>${asset.speed}</dd>
+        </dl>
+      `);
     });
+
+    // TODO: set view of map to encapsulate all assets
   })
   .catch();
 </script>

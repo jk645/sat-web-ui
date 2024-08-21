@@ -1,12 +1,15 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import type { Ref } from "vue";
 import leaflet, { Map, Marker } from "leaflet";
 import { Asset } from "../interfaces/asset";
 import getAssets from "../helpers/get-assets";
 import getISS from "../helpers/get-iss";
+import { CONFIG } from "../config";
 
 let map: Map;
+let updateIssIntervalId: number;
+let updateIssIntervalMs = CONFIG.updateIssIntervalMs;
 
 onMounted(() => {
   map = leaflet.map("map").setView({
@@ -18,6 +21,12 @@ onMounted(() => {
     maxZoom: 19,
     attribution: "&copy; <a href=\"http://www.openstreetmap.org/copyright\">OpenStreetMap</a>"
   }).addTo(map);
+});
+
+onUnmounted(() => {
+  if (updateIssIntervalId) {
+    clearInterval(updateIssIntervalId);
+  }
 });
 
 const markerRefs: {[assetId: string]: Marker} = {};
@@ -78,35 +87,51 @@ getAssets()
     showAll();
   });
 
-  getISS()
-    .then((result: any) => {
-      const issLng = result.iss_position.longitude;
-      const issLat = result.iss_position.latitude;
-      const issAsset = {id: "ISS", location: {lng: issLng, lat: issLat}, heading: 0, speed: 0};
+  const callGetISS = (isInit?: boolean) => {
+    getISS()
+      .then((result: any) => {
+        const issLng = result.iss_position.longitude;
+        const issLat = result.iss_position.latitude;
+        const issAsset = {id: "ISS", location: {lng: issLng, lat: issLat}, heading: 0, speed: 0};
 
-      // Add to the asset list.
-      assetList.value.unshift(issAsset);
+        // Add to the asset list.
+        if (!isInit) {
+          assetList.value.shift();
+        }
+        assetList.value.unshift(issAsset);
 
-      // Create custom icon.
-      var issIcon = leaflet.divIcon({className: 'iss-icon'});
+        // Create custom icon.
+        var issIcon = leaflet.divIcon({className: 'iss-icon'});
 
-      // Add marker to the map.
-      const marker = leaflet.marker(issAsset.location, {icon: issIcon}).addTo(map);
-      marker.bindPopup(`
-        <div class="h5">Asset #${issAsset.id}</div>
-        <dl>
-          <dt>Location (latitude, longitude)</dt>
-          <dd>${issAsset.location.lat}, ${issAsset.location.lng}</dd>
-          <dt>Heading</dt>
-          <dd>Unknown</dd>
-          <dt>Speed</dt>
-          <dd>Very fast</dd>
-        </dl>
-      `);
-      markerRefs[issAsset.id] = marker;
+        // Remove marker if existing.
+        const oldMarker = markerRefs[issAsset.id];
+        if (oldMarker) {
+          oldMarker.remove();
+        }
 
-      showAll();
-    });
+        // Add new marker to the map.
+        const marker = leaflet.marker(issAsset.location, {icon: issIcon}).addTo(map);
+        marker.bindPopup(`
+          <div class="h5">Asset #${issAsset.id}</div>
+          <dl>
+            <dt>Location (latitude, longitude)</dt>
+            <dd>${issAsset.location.lat}, ${issAsset.location.lng}</dd>
+            <dt>Heading</dt>
+            <dd>Unknown</dd>
+            <dt>Speed</dt>
+            <dd>Very fast</dd>
+          </dl>
+        `);
+        markerRefs[issAsset.id] = marker;
+
+        showAll();
+      });
+  };
+
+  callGetISS(true);  // Make initial call. Then call on interval.
+  updateIssIntervalId = setInterval(() => {
+    callGetISS();
+  }, updateIssIntervalMs);
 </script>
 
 <template>
@@ -130,6 +155,7 @@ getAssets()
               <h5 class="card-title">Asset #{{ asset.id }}</h5>
             </div>
             <ul class="list-group list-group-flush">
+              <li class="list-group-item">Location (lat, long): {{asset.location.lat}}, {{asset.location.lng}}</li>
               <li class="list-group-item">Heading: {{ asset.heading }}</li>
               <li class="list-group-item">Speed: {{ asset.speed }}</li>
             </ul>

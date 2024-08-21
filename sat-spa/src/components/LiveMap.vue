@@ -2,8 +2,9 @@
 import { onMounted, ref } from "vue";
 import type { Ref } from "vue";
 import leaflet, { Map, Marker } from "leaflet";
-import getAssets from "../helpers/get-assets";
 import { Asset } from "../interfaces/asset";
+import getAssets from "../helpers/get-assets";
+import getISS from "../helpers/get-iss";
 
 let map: Map;
 
@@ -21,20 +22,43 @@ onMounted(() => {
 
 const markerRefs: {[assetId: string]: Marker} = {};
 const assetList: Ref<Asset[]> = ref([]);
+
+const showAll = () => {
+  // Init each to their opposite.
+  let minLng = 180, maxLng = -180, minLat = 90, maxLat = -90;
+
+  assetList.value.forEach((asset: Asset) => {
+    // Figure out the bounds.
+    minLng = Math.min(minLng, asset.location.lng);
+    maxLng = Math.max(maxLng, asset.location.lng);
+    minLat = Math.min(minLat, asset.location.lat);
+    maxLat = Math.max(maxLat, asset.location.lat);
+  });
+
+  // Set view of map to encapsulate all assets.
+  map.fitBounds([
+    [minLat, minLng],
+    [maxLat, maxLng]
+  ]);
+
+  // Close any open popups.
+  map.closePopup();
+}
+
+const showOnMap = (asset: Asset) => {
+  const markerOfAsset = markerRefs[asset.id];
+  map.setView({
+    lng: asset.location.lng,
+    lat: asset.location.lat
+  });
+  markerOfAsset.openPopup();
+};
+
 getAssets()
   .then((result: Asset[]) => {
     assetList.value = result;
 
-    // Init each to their opposite.
-    let minLng = 180, maxLng = -180, minLat = 90, maxLat = -90;
-
     result.forEach((asset: Asset) => {
-      // Figure out the bounds.
-      minLng = Math.min(minLng, asset.location.lng);
-      maxLng = Math.max(maxLng, asset.location.lng);
-      minLat = Math.min(minLat, asset.location.lat);
-      maxLat = Math.max(maxLat, asset.location.lat);
-
       // Add marker to the map.
       const marker = leaflet.marker(asset.location).addTo(map);
       marker.bindPopup(`
@@ -51,22 +75,38 @@ getAssets()
       markerRefs[asset.id] = marker;
     });
 
-    // Set view of map to encapsulate all assets.
-    map.fitBounds([
-      [minLat, minLng],
-      [maxLat, maxLng]
-    ]);
-  })
-  .catch();
+    showAll();
+  });
 
-  const showOnMap = (asset: Asset) => {
-    const markerOfAsset = markerRefs[asset.id];
-    map.setView({
-      lng: asset.location.lng,
-      lat: asset.location.lat
+  getISS()
+    .then((result: any) => {
+      const issLng = result.iss_position.longitude;
+      const issLat = result.iss_position.latitude;
+      const issAsset = {id: "ISS", location: {lng: issLng, lat: issLat}, heading: 0, speed: 0};
+
+      // Add to the asset list.
+      assetList.value.unshift(issAsset);
+
+      // Create custom icon.
+      var issIcon = leaflet.divIcon({className: 'iss-icon'});
+
+      // Add marker to the map.
+      const marker = leaflet.marker(issAsset.location, {icon: issIcon}).addTo(map);
+      marker.bindPopup(`
+        <div class="h5">Asset #${issAsset.id}</div>
+        <dl>
+          <dt>Location (latitude, longitude)</dt>
+          <dd>${issAsset.location.lat}, ${issAsset.location.lng}</dd>
+          <dt>Heading</dt>
+          <dd>Unknown</dd>
+          <dt>Speed</dt>
+          <dd>Very fast</dd>
+        </dl>
+      `);
+      markerRefs[issAsset.id] = marker;
+
+      showAll();
     });
-    markerOfAsset.openPopup();
-  };
 </script>
 
 <template>
@@ -77,7 +117,14 @@ getAssets()
       </div>
       <div class="col-md-6 order-md-1 mt-4 mt-md-0">
         <div class="asset-list">
-          <h1>All Assets</h1>
+          <div class="d-flex justify-content-between">
+            <h1>All Assets</h1>
+            <button type="button"
+              class="btn btn-outline-dark"
+              @click="showAll()">
+              Show all
+            </button>
+          </div>
           <div class="card mt-2" v-for="asset in assetList">
             <div class="card-body">
               <h5 class="card-title">Asset #{{ asset.id }}</h5>

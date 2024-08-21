@@ -5,8 +5,8 @@
 To run locally for preview purposes, follow these steps:
 
 1. Clone the repo to your local machine.
-1. Ensure your working directory is the root folder of the repo (e.g. `cd sat-web-ui`).
 1. Ensure Node.js and npm are already installed on your local machine. If not, you can install them by visiting: `https://nodejs.org/`
+1. Ensure the root folder of the repo is your working directory (e.g. `cd sat-web-ui`).
 1. Run: `npm install`
 1. After the installation is complete, run: `npm run preview`
 1. Navigate in your web browser to: `http://localhost:3000/`
@@ -42,4 +42,10 @@ TODO...
 
 ## Deploying
 
-TODO...
+The `Dockerfile` located in the root of this repo can be used to generate a container image for deployment. The resulting container runs the UI Asset Server which is an Express Node.js web application.
+
+As you can see from the Dockerfile, the following steps are taking place:
+
+1. The Vue.js Single-Page-App is built into static assets.
+1. These static assets are then placed into the `public` directory of the UI Asset Server.
+1. This Express Node.js web application provides a sign-in page and subsequently serves the static assets according to the security logic.

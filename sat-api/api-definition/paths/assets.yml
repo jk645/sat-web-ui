@@ -30,8 +30,8 @@ get:
                 {
                   id: "1",
                   location: {
-                    lng: -73.990200,
-                    lat: 40.706547
+                    lng: 139.839478,
+                    lat: 35.652832
                   },
                   heading: 332,
                   speed: 36
@@ -39,8 +39,8 @@ get:
                 {
                   id: "2",
                   location: {
-                    lng: -73.989327,
-                    lat: 40.704946
+                    lng: -0.118092,
+                    lat: 51.509865
                   },
                   heading: 332,
                   speed: 28

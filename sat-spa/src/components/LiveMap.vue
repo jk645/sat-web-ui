@@ -24,8 +24,17 @@ getAssets()
   .then((result) => {
     assetList.value = result;
 
-    // Add markers to the map.
+    // Init each to their opposite.
+    let minLng = 180, maxLng = -180, minLat = 90, maxLat = -90;
+
     result.forEach((asset: any) => {
+      // Figure out the bounds.
+      minLng = Math.min(minLng, asset.location.lng);
+      maxLng = Math.max(maxLng, asset.location.lng);
+      minLat = Math.min(minLat, asset.location.lat);
+      maxLat = Math.max(maxLat, asset.location.lat);
+
+      // Add marker to the map.
       const marker = leaflet.marker(asset.location).addTo(map);
       marker.bindPopup(`
         <div class="h5">Asset #${asset.id}</div>
@@ -41,7 +50,11 @@ getAssets()
       markerRefs[asset.id] = marker;
     });
 
-    // TODO: set view of map to encapsulate all assets
+    // Set view of map to encapsulate all assets.
+    map.fitBounds([
+      {lng: minLng, lat: minLat},
+      {lng: maxLng, lat: maxLat}
+    ]);
   })
   .catch();
 
@@ -50,7 +63,7 @@ getAssets()
     map.setView({
       lng: asset.location.lng,
       lat: asset.location.lat
-    }, 14);
+    });
     markerOfAsset.openPopup();
   };
 </script>

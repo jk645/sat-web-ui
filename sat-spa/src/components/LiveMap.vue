@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import type { Ref } from "vue";
-import leaflet from "leaflet";
+import leaflet, { Map, Marker } from "leaflet";
 import getAssets from "../helpers/get-assets";
+import { Asset } from "../interfaces/asset";
 
-let map: any;
+let map: Map;
 
 onMounted(() => {
   map = leaflet.map("map").setView({
@@ -18,16 +19,16 @@ onMounted(() => {
   }).addTo(map);
 });
 
-const markerRefs: any = {};
-const assetList: Ref<any> = ref([{id: 123}]);
+const markerRefs: {[assetId: string]: Marker} = {};
+const assetList: Ref<Asset[]> = ref([]);
 getAssets()
-  .then((result) => {
+  .then((result: Asset[]) => {
     assetList.value = result;
 
     // Init each to their opposite.
     let minLng = 180, maxLng = -180, minLat = 90, maxLat = -90;
 
-    result.forEach((asset: any) => {
+    result.forEach((asset: Asset) => {
       // Figure out the bounds.
       minLng = Math.min(minLng, asset.location.lng);
       maxLng = Math.max(maxLng, asset.location.lng);
@@ -52,13 +53,13 @@ getAssets()
 
     // Set view of map to encapsulate all assets.
     map.fitBounds([
-      {lng: minLng, lat: minLat},
-      {lng: maxLng, lat: maxLat}
+      [minLat, minLng],
+      [maxLat, maxLng]
     ]);
   })
   .catch();
 
-  const showOnMap = (asset: any) => {
+  const showOnMap = (asset: Asset) => {
     const markerOfAsset = markerRefs[asset.id];
     map.setView({
       lng: asset.location.lng,
@@ -76,7 +77,7 @@ getAssets()
       </div>
       <div class="col-md-6 order-md-1 mt-4 mt-md-0">
         <div class="asset-list">
-          <h1>Assets 1 - 3 of 3</h1>
+          <h1>All Assets</h1>
           <div class="card mt-2" v-for="asset in assetList">
             <div class="card-body">
               <h5 class="card-title">Asset #{{ asset.id }}</h5>

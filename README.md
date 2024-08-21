@@ -42,10 +42,10 @@ TODO...
 
 ## Deploying
 
-The `Dockerfile` located in the root of this repo can be used to generate a container image for deployment. The resulting container runs the UI Asset Server which is an Express Node.js web application.
+The `Dockerfile` located in the root of this repo can be used to generate a container image for deployment. The resulting container runs the UI Asset Server which is a Node.js web application.
 
 As you can see from the Dockerfile, the following steps are taking place:
 
-1. The Vue.js Single-Page-App is built into static assets.
+1. The Single-Page-App is built into static assets.
 1. These static assets are then placed into the `public` directory of the UI Asset Server.
-1. This Express Node.js web application provides a sign-in page and subsequently serves the static assets according to the security logic.
+1. This Node.js web application provides a sign-in page and subsequently serves the static assets according to the security logic.
